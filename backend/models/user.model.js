@@ -7,17 +7,39 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
+        unique: true,
         required: true,
     }, 
     password: {
         type: String,
         required: true,
+        minLength: 6
+    },
+    followers:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: []
+    },
+    following:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: []
     },
     profilePic :{
-        type: String
+        type: String,
+        default: "",
     },
     coverPic: {
-        type: String
+        type: String,
+        default: "",
+    }, 
+    bio: {
+        type: String,
+        default: "",
+    },
+    link : {
+        type: String,
+        default: ""
     }
 }, { timestamps: true });
 

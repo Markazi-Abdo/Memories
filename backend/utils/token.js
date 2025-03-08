@@ -10,8 +10,8 @@ export const generateToken = (id, res) => {
         return;
     }
 
-    const token = jwt.sign({ id }, process.env.TOKEN_KEY, { expiresIn: "30d "});
-    res.cookies("user_token", token, {
+    const token = jwt.sign({ id }, process.env.TOKEN_KEY, { expiresIn: "30d"});
+    res.cookie("user_token", token, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "strict",

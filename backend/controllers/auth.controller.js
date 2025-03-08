@@ -3,6 +3,7 @@ import { serverLogger } from "../logs/funcs/serverLogger.log.js";
 import { User } from "../models/user.model.js";
 import bcryptjs from "bcryptjs"
 import { generateToken } from "../utils/token.js";
+import { serverNamespace } from "../src/server.js";
 
 export const signUpController = async (req, res) => {
     serverLogger.info("Signing up started");
@@ -21,7 +22,7 @@ export const signUpController = async (req, res) => {
         return;
     }
 
-    const salt = await bcryptjs.genSalt(30);
+    const salt = await bcryptjs.genSalt(10);
     const hashed = await bcryptjs.hash(userReq.password, salt);
 
     const newUser = new User({
@@ -79,7 +80,7 @@ export const loginController = async (req, res) => {
 export const logoutController = (req, res) => {
     serverLogger.info("Logout started");
     try {
-        res.cookies("user_token", "", { maxAge: 0 });
+        res.cookie("user_token", "", { maxAge: 0 });
         serverLogger.info("Logout successfull"); 
         return res.status(200).json({ success: true, message: "Logout succesfull"});
     } catch (error) {
