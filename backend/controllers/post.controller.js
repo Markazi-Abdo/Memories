@@ -103,15 +103,15 @@ export const likePost = async ( req, res ) => {
         const { id:post } = req.params;
         const findPost = await Post.findById(post);
         if(!findPost){
-            return res.statsu(404).json({ success: false, message: "Couldn't find post"})
+            return res.status(404).json({ success: false, message: "Couldn't find post"})
         }
 
         const findLikes = findPost.likes.includes(req.user._id);
         if(findLikes){
             const action = await Post.updateOne({ _id: post}, {$pull: { likes:  user }});
             await User.updateOne({ _id: user }, { $pull: { likedPost: post }});
-            const updatedLikes = findPost.likes.filter((id) => id.toString() !== user.toString());
-            res.status(200).json({ success: true, message:`${req.user._id} unliked post`, data: updatedLikes });
+            const updatedLikes = findPost.likes.filter((item) => item._id.toString() !== user.toString());
+            res.status(200).json({ success: true, message:`${req.user._id} unliked post`, likes: updatedLikes });
             const notif = new Notification({
                 from: user,
                 to: findPost.user,

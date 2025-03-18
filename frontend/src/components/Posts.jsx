@@ -31,6 +31,7 @@ export default function Posts({ feedType, username, id }) {
         return action.data;
       } catch (error) {
           toast.error(error.response.message)
+          return []
       }
     },
   })
@@ -41,16 +42,16 @@ export default function Posts({ feedType, username, id }) {
 
   if(isLoading){
     return (
-      <div className='animate-spin'>
-        <LoaderPinwheel />
+      <div >
+        <LoaderPinwheel className='animate-spin'/>
       </div>
     )
   };
 
   if(isRefetching){
     return (
-      <div className='animate-spin'>
-        <LoaderPinwheel />
+      <div>
+        <LoaderPinwheel className='animate-spin'/>
       </div>
     )
   };

@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Posts from '../components/Posts';
 import { InfoIcon, LinkIcon, LockIcon, MailIcon, User2Icon } from 'lucide-react';
+import { useFollowToggle } from '../hooks/followHook';
 
 export default function Profile() {
   const client = useQueryClient();
@@ -55,6 +56,7 @@ export default function Profile() {
   });
   
   const isMyProfile = user?.data._id === profile?.profileData._id;
+  const isFollowed = profile?.profileData.followers.includes(user?.data._id);
 
   useEffect(() => {
     refetch();
@@ -63,7 +65,7 @@ export default function Profile() {
   const { mutate:updateProfile } = useMutation({
     mutationFn: async () => {
         try {
-            const updateAction = await axiosInstance.put("/user/update",  update );
+            const updateAction = await axiosInstance.put("/user/update", update);
             return updateAction.data;
         } catch (error) {
             toast.error("Something went wrong")
@@ -71,9 +73,14 @@ export default function Profile() {
     },
     onSuccess: () => {
         toast.success("Updated");
-        client.invalidateQueries({ queryKey: [ "authUser" ]})
+        Promise.all([
+            client.invalidateQueries({ queryKey: [ "authUser" ]}),
+            client.invalidateQueries({ queryKey: [ "profileUser" ]})
+        ])
     }
   })
+
+  const { follow, isPending } = useFollowToggle();
 
   return (
     <div>
@@ -94,8 +101,9 @@ export default function Profile() {
                         {profile?.profileData.username}
                     </h2>
                 </div>
+                
                 {
-                    isMyProfile && (
+                    isMyProfile ? (
                         <div className='mr-6'>
                             <button className='btn btn-ghost rounded-full p-2 w-72'
                             onClick={()=>document.getElementById(`${profile?.profileData.username}_info`).showModal()}
@@ -103,9 +111,23 @@ export default function Profile() {
                                 Edit profile
                             </button>
                         </div>
+                    ) : (
+                        <div className='mr-6'>
+                            <button className='btn btn-ghost rounded-full p-2 '
+                            onClick={()=>follow(profile?.profileData._id)}
+                            >
+                                {
+                                    isFollowed ?" unfollow" : "follow"
+                                }
+                            </button>
+                        </div>
                     )
                 }
                 
+            </div>
+            <div className='flex items-center gap-4 ml-5 mb-2'>
+                    <span>Followers {profile?.profileData?.followers.length}</span>
+                    <span>Following {profile?.profileData?.following.length}</span>
             </div>
         </div>
         <dialog className='modal' id={`${profile?.profileData.username}_info`} data-theme="synthwave">

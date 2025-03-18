@@ -4,6 +4,7 @@ import { useState } from "react"
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axiosInstance";
 import { useFollowToggle } from "../hooks/followHook";
+import { Link as Way } from "react-router-dom";
 
 export default function Post({ post }) { 
   const queryClient = useQueryClient();
@@ -12,7 +13,8 @@ export default function Post({ post }) {
   const [ followed, setFollowed ] = useState(false);
   const { data:user } = useQuery({ queryKey: [ "authUser" ]});
   const { follow } = useFollowToggle();
-  
+  const imUser = user?.data._id === post?.user._id;
+
   const followToggle = () => {
     follow(post.user._id);
     setFollowed(!followed);
@@ -39,22 +41,16 @@ export default function Post({ post }) {
             console.log(postReq)
             return postReq.data.data;
         } catch (error) {
-            toast.error("Problem occured, try again")
+            toast.error(error.response?.data?.message)
+            return []
         }
     },
-    onSuccess: (updated) => {
+    onSuccess: () => {
         toast.success("Liked Post");
-        queryClient.setQueryData(["posts"], (oldData) => {
-            return oldData.map(p => {
-                if(p._id === post._id){
-                    return {
-                        ...p,
-                        likes: updated
-                    }
-                }
-                return p;
-            })
-        })
+        queryClient.invalidateQueries({ queryKey: ["posts"] })
+    },
+    onError: (error) => {
+        toast.error(error.message)
     }
   })
 
@@ -66,6 +62,10 @@ export default function Post({ post }) {
         } catch (error) {
             toast.error("Something went wrong");
         }
+    },
+    onSuccess: () => {
+        toast.success("Comment registered");
+        queryClient.invalidateQueries({ queryKey: [ "posts" ]})
     }
   })
   return (
@@ -73,33 +73,39 @@ export default function Post({ post }) {
         <div id="header" className="flex justify-between items-center p-2">
             <div className="flex justify-between items-center gap-2">
                 <div className="avatar w-8 border border-slate-900 p-1 rounded-full">
-                    <img src={post.user.profilePic || "/vite.svg"} alt="" />
+                    <Way to={`/profile/${post?.user.username}`}>
+                        <img src={post?.user.profilePic || "/vite.svg"} alt="" />
+                    </Way>
                 </div>
-                <h4>{post.user.username}</h4>
+                <h4>{post?.user.username}</h4>
             </div>
             <div>
-                <button 
-                className="btn btn-ghost rounded-full"
-                onClick={followToggle}
-                >
-                    {
-                        !followed ? (
-                            <PlusSquareIcon />
-                        ) : (
-                            <CheckSquareIcon />
-                        )
-                    }
-                 
-                </button>
+                {
+                    !imUser && (
+                        <button 
+                        className="btn btn-ghost rounded-full"
+                        onClick={followToggle}
+                        >
+                            {
+                                    !followed ? (
+                                        <PlusSquareIcon />
+                                    ) : (
+                                        <CheckSquareIcon /> 
+                                    )
+                                
+                            }
+                        </button>
+                    )
+                }
             </div>
         </div>
         <div id="body" className="border-2 rounded-xl p-2">
-            <p className="underline">{post.text}</p>
+            <p className="underline">{post?.text}</p>
         </div>
         {
-            post.image && (
+            post?.image && (
                 <div>
-                    <img src={post.image} alt="" />
+                    <img src={post?.image} alt="" />
                 </div>
             )
         }
@@ -110,17 +116,17 @@ export default function Post({ post }) {
                 onClick={likePost}
                 >
                     <ThumbsUp />
-                    <span>{post.likes.length}</span>
+                    <span>{post?.likes.length}</span>
                 </button>
                 <button 
                 className="transition-colors hover:bg-neutral/90 rounded-full p-2 flex items-center justify-between gap-1.5"
-                onClick={()=>document.getElementById(`${post._id}_modal`).showModal()}
+                onClick={()=>document.getElementById(`${post?._id}_modal`).showModal()}
                 >
                     <MessageSquareText />
-                    <span>{post.comments.length}</span>
+                    <span>{post?.comments.length}</span>
                 </button>
             </div>
-            <dialog id={`${post._id}_modal`} className="modal">
+            <dialog id={`${post?._id}_modal`} className="modal">
                 <div className="modal-box">
                     <h5>What you think about this post</h5>
                     <label className="flex items-center input input-bordered input-sm rounded-3xl">
@@ -139,16 +145,16 @@ export default function Post({ post }) {
                         <SendIcon />
                     </button>
                         {
-                            post.comments.map(c => {
+                            post?.comments.map(c => {
                                 return(
                                     <div className="border border-white rounded-3xl p-2 my-5 flex flex-col justify-between ">
                                         <div className="flex items-center gap-2">
                                             <div className="avatar w-5">
-                                                <img src={post.user.profilePic || "/vite.svg"} alt="" />
+                                                <img src={post?.user.profilePic || "/vite.svg"} alt="" />
                                             </div>
-                                            <h4>{post.user.username}</h4>
+                                            <h4>{post?.user.username}</h4>
                                         </div>
-                                        <h5>{c.text}</h5>
+                                        <h5>{c?.text}</h5>
                                     </div>
                                 )
                             })
@@ -156,7 +162,7 @@ export default function Post({ post }) {
                 </div>
             </dialog>
             {
-                post.user._id === user.data._id && (
+                post?.user._id === user?.data._id && (
                     <button 
                     className="transition-colors hover:bg-neutral/90 rounded-full p-2"
                     onClick={deletePost}

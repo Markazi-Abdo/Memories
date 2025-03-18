@@ -13,6 +13,7 @@ import http from "http";
 import userRouter from "../routes/users.routes.js";
 import postRoutes from "../routes/post.routes.js";
 import notifRouter from "../routes/notifications.routes.js";
+import path from "path";
 dotenv.config();
 
 const app = express();
@@ -44,6 +45,12 @@ serverNamespace.on("connection", (socket) => {
     socket.on("disconnect", () => {
         serverLogger.info("User disconnected", socket.id);
     })
+})
+
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, "../frontend/dist")))
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
 })
 
 server.listen(process.env.PORT, () => {
