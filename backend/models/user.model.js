@@ -1,4 +1,4 @@
-import mongoose, { model } from "mongoose"
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
     username:{
@@ -15,16 +15,16 @@ const userSchema = new mongoose.Schema({
         required: true,
         minLength: 6
     },
-    followers:{
+    followers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: []
-    },
-    following:{
+    }],
+    following: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: []
-    },
+    }],
     profilePic :{
         type: String,
         default: "",
@@ -40,7 +40,12 @@ const userSchema = new mongoose.Schema({
     link : {
         type: String,
         default: ""
-    }
+    },
+    likedPost: [{
+        type:mongoose.Types.ObjectId,
+        ref:"Post",
+        default: []
+    }]
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);

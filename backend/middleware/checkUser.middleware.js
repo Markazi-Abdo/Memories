@@ -21,7 +21,7 @@ export const checkUser = async (req, res, next) => {
         if(!user){
             return res.status(400).json({ success: false, message: "Couldn't find user"});
         }
-
+        serverLogger.info("Auth succesfull");
         req.user = user;
         next();
     } catch (error) {

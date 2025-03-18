@@ -1,34 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route as Nav, Navigate, Routes as Navs} from "react-router-dom"
+import Home from "./pages/Home"
+import Signup from "./pages/Signup"
+import Login from "./pages/Login"
+import toast, { Toaster } from "react-hot-toast"
+import SideBar from "./components/SideBar"
+import SuugestedUsers from "./components/SuugestedUsers"
+import { useQuery } from "@tanstack/react-query"
+import { axiosInstance } from "./lib/axiosInstance"
+import { LoaderCircleIcon } from "lucide-react"
+import Notificcations from "./pages/Notificcations"
+import Profile from "./pages/Profile"
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const { data:authUser, isLoading } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: async () => {
+      try {
+        const fetchReq = await axiosInstance.get("/auth/authuser");
+        return fetchReq.data;
+      } catch (error) {
+        toast.error(error.message);
+      }
+    }
+  })
+  {
+    if(isLoading) return (
+      <div className="flex justify-center items-center animate-pulse min-h-screen w-screen size-96 bg-base-100">
+        <LoaderCircleIcon />
+      </div>
+    )
+    
+  }
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main data-theme="black" className="min-h-screen w-screen bg-base-100">
+      <div className="grid grid-cols-5">
+        {authUser && <SideBar />}
+        <div className={authUser ? "col-span-3" : "col-span-6"}>
+          <Navs>
+              <Nav path="/" exact element={authUser ? <Home /> : <Navigate to="/login" />}></Nav>
+              <Nav path="/signup" element={!authUser ? <Signup /> : <Navigate to="/" />}></Nav>
+              <Nav path="/login" element={!authUser ? <Login /> : <Navigate to="/" />}></Nav>
+              <Nav path="/notifications" element={authUser ? <Notificcations /> : <Navigate to="/login" />}></Nav>
+              <Nav path="/profile/:username" element={authUser ? <Profile/> : <Navigate to="/login" />}></Nav>
+          </Navs>
+        </div>
+        {authUser && <SuugestedUsers />}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <Toaster 
+      position="top-right"
+      reverseOrder={ true }
+      />
+    </main>
   )
 }
 

@@ -14,7 +14,13 @@ export const signUpController = async (req, res) => {
         res.status(400).json({ success: false, message: "All fields should be filled "});
         return;
     }
-
+    const findUsername = await User.findOne({ username: userReq.username })
+    if(findUsername){
+        dbLogger.info("Couldn't procced due to already existing username"); 
+        res.status(400).json({ success: false, message: "Username Already exists "});
+        return;
+    }
+    
     const findEmail = await User.findOne({ email: userReq.email });
     if(findEmail){
         dbLogger.info("Couldn't procced due to already existing email"); 
